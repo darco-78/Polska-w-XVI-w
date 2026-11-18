@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0b1120">
+<title>Polska w XVI wieku – Fiszki i Quiz | Klasa 6</title>
+<style>
+:root {
+  --bg: #0b1120; --card: #1e293b; --card2: #273549;
+  --accent: #38bdf8; --accent2: #a78bfa;
+  --success: #22c55e; --warning: #f59e0b; --danger: #ef4444;
+  --text: #f1f5f9; --muted: #94a3b8; --border: #334155;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  background-image:
+    radial-gradient(ellipse at 15% 0%, rgba(56,189,248,0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 100%, rgba(167,139,250,0.1) 0%, transparent 50%);
+  color: var(--text); min-height: 100vh; padding: 14px; line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+}
+.app { max-width: 720px; margin: 0 auto; padding-bottom: 36px; }
+header { text-align: center; margin-bottom: 16px; padding-top: 6px; }
+h1 {
+  font-size: 1.5rem; font-weight: 800;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  margin-bottom: 4px;
+}
+.subtitle { color: var(--muted); font-size: 0.88rem; }
+.stats-bar { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
+.stat {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 8px 14px; text-align: center; min-width: 78px;
+}
+.stat-value { font-size: 1.25rem; font-weight: 800; color: var(--accent); }
+.stat-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+.tabs {
+  display: flex; gap: 5px; justify-content: center; margin-bottom: 18px;
+  background: var(--card); padding: 5px; border-radius: 14px; border: 1px solid var(--border);
+}
+.tab-btn {
+  flex: 1; background: transparent; border: none; color: var(--muted);
+  padding: 10px 4px; border-radius: 10px; cursor: pointer; font-size: 0.8rem; font-weight: 600;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.tab-btn span { font-size: 1.1rem; }
+.tab-btn.active {
+  background: linear-gradient(135deg, #0ea5e9, #6366f1); color: #fff;
+  box-shadow: 0 4px 12px rgba(14,165,233,0.28);
+}
+.panel { display: none; }
+.panel.active { display: block; animation: fadeIn 0.22s ease; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.flashcard-controls {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 12px; gap: 8px; flex-wrap: wrap;
+}
+.progress-text { color: var(--muted); font-size: 0.88rem; font-weight: 500; }
+.card-wrapper { max-width: 480px; margin: 0 auto 16px; height: 280px; position: relative; }
+.flashcard {
+  width: 100%; height: 100%; position: relative; cursor: pointer;
+  user-select: none; -webkit-user-select: none;
+}
+.face {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  border-radius: 18px; display: flex; flex-direction: column;
+  justify-content: center; align-items: center; padding: 24px 20px;
+  text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+.front {
+  background: linear-gradient(160deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid var(--border); z-index: 2;
+}
+.back {
+  background: linear-gradient(160deg, #1e3a5f 0%, #1e293b 100%);
+  border: 1px solid var(--accent); z-index: 1; opacity: 0; pointer-events: none;
+}
+.flashcard.is-flipped .front { opacity: 0; pointer-events: none; transform: scale(0.96); }
+.flashcard.is-flipped .back { opacity: 1; pointer-events: auto; z-index: 3; }
+.face .term {
+  font-size: 1.4rem; font-weight: 700; color: var(--accent); margin-bottom: 8px; line-height: 1.3;
+}
+.face .def { font-size: 1.05rem; color: var(--text); line-height: 1.45; }
+.face .hint { margin-top: 14px; font-size: 0.75rem; color: var(--muted); opacity: 0.85; }
+.card-type {
+  position: absolute; top: 12px; left: 12px;
+  font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  padding: 3px 8px; border-radius: 999px;
+}
+.card-type.date { background: rgba(56,189,248,0.2); color: #7dd3fc; border: 1px solid rgba(56,189,248,0.35); }
+.card-type.event { background: rgba(167,139,250,0.2); color: #c4b5fd; border: 1px solid rgba(167,139,250,0.35); }
+.card-type.pojecie { background: rgba(34,197,94,0.15); color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
+.known-badge {
+  position: absolute; top: 12px; right: 12px;
+  background: rgba(34,197,94,0.2); color: #86efac; font-size: 0.68rem; font-weight: 700;
+  padding: 3px 9px; border-radius: 999px; border: 1px solid rgba(34,197,94,0.4);
+}
+.nav-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
+.btn {
+  background: var(--card); border: 1px solid var(--border); color: var(--text);
+  padding: 11px 16px; border-radius: 11px; cursor: pointer; font-size: 0.9rem; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 5px;
+  -webkit-appearance: none; appearance: none;
+}
+.btn:active { transform: scale(0.97); }
+.btn.primary { background: linear-gradient(135deg, #0ea5e9, #6366f1); border: none; color: #fff; }
+.btn.success { background: rgba(34,197,94,0.15); border-color: var(--success); color: #86efac; }
+.btn.warning { background: rgba(245,158,11,0.15); border-color: var(--warning); color: #fcd34d; }
+.btn.danger { background: rgba(239,68,68,0.12); border-color: var(--danger); color: #fca5a5; }
+.btn.sm { padding: 7px 12px; font-size: 0.82rem; }
+.know-row { display: flex; gap: 8px; justify-content: center; margin-top: 4px; }
+.quiz-header { text-align: center; margin-bottom: 14px; }
+.quiz-score { font-size: 0.9rem; color: var(--muted); margin-bottom: 6px; }
+.quiz-progress-bar {
+  height: 6px; background: var(--card); border-radius: 999px; overflow: hidden;
+  max-width: 260px; margin: 0 auto;
+}
+.quiz-progress-fill {
+  height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 999px; transition: width 0.3s ease; width: 0%;
+}
+.quiz-question {
+  background: var(--card); border-radius: 16px; padding: 18px; margin-bottom: 14px;
+  border: 1px solid var(--border);
+}
+.quiz-question h2 { font-size: 1.08rem; margin-bottom: 14px; line-height: 1.4; font-weight: 600; }
+.options { display: flex; flex-direction: column; gap: 8px; }
+.option {
+  background: var(--bg); border: 2px solid var(--border); color: var(--text);
+  padding: 12px 14px; border-radius: 11px; cursor: pointer; text-align: left;
+  font-size: 0.92rem; font-weight: 500; -webkit-appearance: none; appearance: none;
+}
+.option.correct { border-color: var(--success); background: rgba(34,197,94,0.15); }
+.option.wrong { border-color: var(--danger); background: rgba(239,68,68,0.12); }
+.option:disabled { cursor: default; }
+.feedback {
+  margin-top: 12px; padding: 10px 12px; border-radius: 10px; font-weight: 600;
+  font-size: 0.9rem; display: none;
+}
+.feedback.show { display: block; }
+.feedback.ok { background: rgba(34,197,94,0.18); color: #86efac; }
+.feedback.bad { background: rgba(239,68,68,0.15); color: #fca5a5; }
+.quiz-actions { display: flex; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+.result-box {
+  text-align: center; padding: 32px 18px; background: var(--card);
+  border-radius: 18px; border: 1px solid var(--border);
+}
+.result-box h2 { font-size: 1.45rem; margin-bottom: 6px; }
+.big-score {
+  font-size: 2.8rem; font-weight: 800;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  margin: 10px 0;
+}
+.result-msg { color: var(--muted); margin-bottom: 6px; }
+.list-filters { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; justify-content: center; }
+.filter-btn {
+  background: var(--card); border: 1px solid var(--border); color: var(--muted);
+  padding: 6px 12px; border-radius: 999px; cursor: pointer; font-size: 0.78rem; font-weight: 600;
+  -webkit-appearance: none; appearance: none;
+}
+.filter-btn.active {
+  background: linear-gradient(135deg, #0ea5e9, #6366f1); color: #fff; border-color: transparent;
+}
+.event-list { display: flex; flex-direction: column; gap: 8px; }
+.event-item {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start;
+}
+.event-item.known { border-color: rgba(34,197,94,0.4); }
+.event-term { font-weight: 700; color: var(--accent); font-size: 0.9rem; min-width: 100px; flex-shrink: 0; }
+.event-def { font-size: 0.88rem; flex: 1; color: var(--text); }
+.event-status {
+  font-size: 1.05rem; cursor: pointer; opacity: 0.5; flex-shrink: 0;
+  background: none; border: none; color: inherit; padding: 0;
+}
+.event-item.known .event-status { opacity: 1; }
+.progress-panel {
+  background: var(--card); border-radius: 16px; padding: 20px;
+  border: 1px solid var(--border); text-align: center;
+}
+.progress-panel h2 { font-size: 1.15rem; margin-bottom: 16px; }
+.mastery-circle { width: 130px; height: 130px; margin: 0 auto 16px; position: relative; }
+.mastery-circle svg { transform: rotate(-90deg); }
+.mastery-circle .pct {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; font-size: 1.65rem; font-weight: 800; color: var(--accent);
+}
+.mastery-circle .pct small { font-size: 0.65rem; color: var(--muted); font-weight: 500; }
+.progress-details { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.detail-card {
+  background: var(--bg); border-radius: 11px; padding: 12px; border: 1px solid var(--border);
+}
+.detail-card .num { font-size: 1.35rem; font-weight: 800; color: var(--accent); }
+.detail-card .lbl { font-size: 0.72rem; color: var(--muted); }
+.reset-row { margin-top: 16px; display: flex; justify-content: center; }
+.hidden { display: none !important; }
+footer { text-align: center; margin-top: 28px; color: var(--muted); font-size: 0.72rem; }
+.toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(70px);
+  background: var(--card2); color: var(--text); padding: 11px 18px; border-radius: 11px;
+  font-weight: 600; font-size: 0.88rem; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  border: 1px solid var(--border); transition: transform 0.28s ease; z-index: 100; pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+@media (max-width: 480px) {
+  h1 { font-size: 1.28rem; }
+  .card-wrapper { height: 250px; }
+  .face .term { font-size: 1.2rem; }
+  .face .def { font-size: 0.98rem; }
+  .tab-btn { font-size: 0.72rem; padding: 9px 3px; }
+  .event-term { min-width: 85px; font-size: 0.85rem; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Polska w XVI wieku</h1>
+    <p class="subtitle">Historia · Klasa 6 · Fiszki + Quiz + Powtórki</p>
+  </header>
+
+  <div class="stats-bar">
+    <div class="stat">
+      <div class="stat-value" id="stat-known">0</div>
+      <div class="stat-label">Znam</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="stat-left">0</div>
+      <div class="stat-label">Do nauki</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="stat-total">0</div>
+      <div class="stat-label">Wszystkich</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="stat-best">–</div>
+      <div class="stat-label">Najlepszy quiz</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button type="button" class="tab-btn active" data-tab="fiszki"><span>📇</span>Fiszki</button>
+    <button type="button" class="tab-btn" data-tab="quiz"><span>❓</span>Quiz</button>
+    <button type="button" class="tab-btn" data-tab="lista"><span>📋</span>Lista</button>
+    <button type="button" class="tab-btn" data-tab="postepy"><span>📊</span>Postępy</button>
+  </div>
+
+  <div id="panel-fiszki" class="panel active">
+    <div class="flashcard-controls">
+      <span class="progress-text" id="card-progress">1 / 0</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button type="button" class="btn sm" id="shuffle-btn">🔀 Losuj</button>
+        <button type="button" class="btn sm" id="only-unknown-btn">Tylko nieznane</button>
+      </div>
+    </div>
+    <div class="card-wrapper">
+      <div class="flashcard" id="flashcard" role="button" tabindex="0">
+        <div class="face front">
+          <div class="card-type" id="front-type">data</div>
+          <div class="known-badge hidden" id="known-badge">✓ Znam</div>
+          <div class="term" id="front-term">…</div>
+          <div class="hint">Kliknij kartę lub „Odwróć”</div>
+        </div>
+        <div class="face back">
+          <div class="known-badge hidden" id="known-badge-back">✓ Znam</div>
+          <div class="def" id="back-def">…</div>
+          <div class="hint">Kliknij, aby wrócić</div>
+        </div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button type="button" class="btn" id="prev-btn">← Wstecz</button>
+      <button type="button" class="btn primary" id="flip-btn">Odwróć</button>
+      <button type="button" class="btn" id="next-btn">Dalej →</button>
+    </div>
+    <div class="know-row">
+      <button type="button" class="btn success" id="know-btn">✓ Znam to</button>
+      <button type="button" class="btn warning" id="unknow-btn">↻ Do powtórki</button>
+    </div>
+  </div>
+
+  <div id="panel-quiz" class="panel">
+    <div id="quiz-area">
+      <div class="quiz-header">
+        <div class="quiz-score" id="quiz-score">Pytanie 1 · Punkty: 0</div>
+        <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="quiz-bar"></div></div>
+      </div>
+      <div class="quiz-question">
+        <h2 id="q-text">Ładowanie…</h2>
+        <div class="options" id="options"></div>
+        <div class="feedback" id="feedback"></div>
+      </div>
+      <div class="quiz-actions">
+        <button type="button" class="btn primary hidden" id="next-q-btn">Następne pytanie →</button>
+      </div>
+    </div>
+    <div id="result-area" class="result-box hidden">
+      <h2>Koniec quizu!</h2>
+      <div class="big-score" id="final-score">0 / 0</div>
+      <p class="result-msg" id="final-msg"></p>
+      <div class="quiz-actions" style="margin-top:18px">
+        <button type="button" class="btn primary" id="retry-btn">🔄 Jeszcze raz</button>
+        <button type="button" class="btn" id="go-fiszki-btn">📇 Do fiszek</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-lista" class="panel">
+    <div class="list-filters">
+      <button type="button" class="filter-btn active" data-filter="all">Wszystkie</button>
+      <button type="button" class="filter-btn" data-filter="known">Znam</button>
+      <button type="button" class="filter-btn" data-filter="unknown">Do powtórki</button>
+    </div>
+    <div class="event-list" id="event-list"></div>
+  </div>
+
+  <div id="panel-postepy" class="panel">
+    <div class="progress-panel">
+      <h2>Twój postęp</h2>
+      <div class="mastery-circle">
+        <svg width="130" height="130" viewBox="0 0 130 130">
+          <circle cx="65" cy="65" r="54" fill="none" stroke="#1e293b" stroke-width="11"/>
+          <circle id="mastery-arc" cx="65" cy="65" r="54" fill="none" stroke="url(#grad)" stroke-width="11"
+            stroke-linecap="round" stroke-dasharray="339.3" stroke-dashoffset="339.3"/>
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#38bdf8"/>
+              <stop offset="100%" stop-color="#a78bfa"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="pct"><span id="mastery-pct">0%</span><small>opanowane</small></div>
+      </div>
+      <div class="progress-details">
+        <div class="detail-card"><div class="num" id="det-known">0</div><div class="lbl">Znam</div></div>
+        <div class="detail-card"><div class="num" id="det-left">0</div><div class="lbl">Do nauki</div></div>
+        <div class="detail-card"><div class="num" id="det-quizzes">0</div><div class="lbl">Ukończone quizy</div></div>
+        <div class="detail-card"><div class="num" id="det-best">–</div><div class="lbl">Najlepszy wynik</div></div>
+      </div>
+      <div class="reset-row">
+        <button type="button" class="btn danger sm" id="reset-btn">🗑️ Resetuj postępy</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>Polska w XVI wieku · Historia klasa 6 · Nauka offline</footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /*
+    type:
+      "date"    = przód: DATA → tył: co się stało
+      "event"   = przód: WYDARZENIE / pytanie „kiedy?” → tył: DATA
+      "pojecie" = przód: POJĘCIE → tył: definicja
+  */
+  var DATA = [
+    // ===== DATY → wydarzenie =====
+    { id: 1,  type: "date", term: "1501–1506", def: "Panowanie w Polsce i na Litwie króla Aleksandra Jagiellończyka; wojny z Moskwą" },
+    { id: 2,  type: "date", term: "1506–1548", def: "Panowanie króla Zygmunta Starego" },
+    { id: 3,  type: "date", term: "1519–1521", def: "Ostatnia wojna polsko-krzyżacka" },
+    { id: 4,  type: "date", term: "1525", def: "Hołd pruski – Albrecht Hohenzollern składa hołd w Krakowie; powstają Prusy Książęce ze stolicą w Królewcu" },
+    { id: 5,  type: "date", term: "1526", def: "Śmierć ostatniego księcia mazowieckiego i włączenie Mazowsza do Korony Polskiej" },
+    { id: 6,  type: "date", term: "1548–1572", def: "Rządy Zygmunta II Augusta – ostatniego z Jagiellonów" },
+    { id: 7,  type: "date", term: "1505", def: "Konstytucja Nihil Novi („nic nowego”) – król nie może ustanawiać praw bez zgody senatu i izby poselskiej" },
+    { id: 8,  type: "date", term: "1569", def: "Unia lubelska – unia realna Korony z Litwą, powstanie Rzeczypospolitej Obojga Narodów" },
+    { id: 9,  type: "date", term: "1572", def: "Śmierć Zygmunta Augusta bez potomka – początek bezkrólewia" },
+    { id: 10, type: "date", term: "1573", def: "Ustanowienie wolnej elekcji oraz uchwalenie tolerancji religijnej (konfederacja warszawska)" },
+    { id: 11, type: "date", term: "1573–1574", def: "Rządy Henryka Walezego (z Francji) – rządził ok. 4 miesiące i uciekł do Francji" },
+    { id: 12, type: "date", term: "1576–1586", def: "Rządy Stefana Batorego – reformy, piechota wybraniecka, zwycięstwa nad Iwanem Groźnym, Akademia Wileńska" },
+
+    // ===== WYDARZENIE → data (pytanie „kiedy?”) =====
+    { id: 13, type: "event", term: "Kiedy był hołd pruski?", def: "1525" },
+    { id: 14, type: "event", term: "Kiedy uchwalono Nihil Novi?", def: "1505" },
+    { id: 15, type: "event", term: "Kiedy zawarto unię lubelską?", def: "1569" },
+    { id: 16, type: "event", term: "Kiedy zmarł Zygmunt August (początek bezkrólewia)?", def: "1572" },
+    { id: 17, type: "event", term: "Kiedy wprowadzono wolną elekcję i konfederację warszawską?", def: "1573" },
+    { id: 18, type: "event", term: "Kiedy panował Stefan Batory?", def: "1576–1586" },
+    { id: 19, type: "event", term: "Kiedy panował Zygmunt Stary?", def: "1506–1548" },
+    { id: 20, type: "event", term: "Kiedy panował Zygmunt II August?", def: "1548–1572" },
+    { id: 21, type: "event", term: "Kiedy była ostatnia wojna polsko-krzyżacka?", def: "1519–1521" },
+    { id: 22, type: "event", term: "Kiedy włączono Mazowsze do Korony?", def: "1526" },
+    { id: 23, type: "event", term: "Kiedy panował Henryk Walezy?", def: "1573–1574" },
+    { id: 24, type: "event", term: "Kiedy panował Aleksander Jagiellończyk?", def: "1501–1506" },
+
+    // ===== POJĘCIA =====
+    { id: 25, type: "pojecie", term: "Sejm walny", def: "Składa się z króla, senatu i izby poselskiej; na obrady mogli przyjeżdżać tylko wybrani reprezentanci" },
+    { id: 26, type: "pojecie", term: "Pospolite ruszenie", def: "Szlachta powoływana do służby wojskowej w czasie wojen" },
+    { id: 27, type: "pojecie", term: "Magnat", def: "Bardzo bogaty szlachcic – posiadał setki wsi lub miasta" },
+    { id: 28, type: "pojecie", term: "Szlachta zagrodowa", def: "Szlachta o niewielkich majątkach" },
+    { id: 29, type: "pojecie", term: "Gołota", def: "Uboga szlachta nieposiadająca własnego majątku" },
+    { id: 30, type: "pojecie", term: "Rzeczpospolita szlachecka", def: "W XVI w. tak nazywano państwo polsko-litewskie; ustrój to demokracja szlachecka" },
+    { id: 31, type: "pojecie", term: "Artykuły henrykowskie", def: "Zasady uchwalone na sejmie elekcyjnym, które musiał podpisać przyszły król" },
+    { id: 32, type: "pojecie", term: "Pacta conventa", def: "Własne obietnice i zobowiązania kandydata na króla (polityczne, gospodarcze, kulturalne)" },
+    { id: 33, type: "pojecie", term: "Folwark", def: "Gospodarstwo rolne należące do szlachcica" },
+    { id: 34, type: "pojecie", term: "Pańszczyzna", def: "Przymusowa praca chłopa na rzecz szlachcica" },
+    { id: 35, type: "pojecie", term: "Dukat (złoty czerwony)", def: "Złota moneta z czasów Zygmunta Starego" },
+    { id: 36, type: "pojecie", term: "Talar", def: "Moneta srebrna o większej wartości" },
+    { id: 37, type: "pojecie", term: "Grosz", def: "Moneta srebrna o mniejszej wartości" },
+    { id: 38, type: "pojecie", term: "Szeląg", def: "Miedziana moneta o najniższej wartości" },
+    { id: 39, type: "pojecie", term: "Złoty polski", def: "Wartość równa 30 groszom" },
+    { id: 40, type: "pojecie", term: "Unia brzeska (1569)", def: "Porozumienie prawosławnych biskupów z Rzymem; powstanie Kościoła greckokatolickiego (unickiego)" },
+    { id: 41, type: "pojecie", term: "Konfederacja warszawska", def: "Akt o tolerancji religijnej w Rzeczypospolitej (1573)" },
+    { id: 42, type: "pojecie", term: "Arianie (bracia polscy)", def: "Ruch religijny; dobre szkoły i drukarnie; Akademia Rakowska" },
+    { id: 43, type: "pojecie", term: "Bona Sforza", def: "Włoszka, żona Zygmunta Starego; sprowadzała artystów i włoskie warzywa; kaplica Zygmuntowska na Wawelu" },
+    { id: 44, type: "pojecie", term: "Rej, Kochanowski, Frycz Modrzewski", def: "Wybitni polscy literaci i pisarze epoki renesansu" },
+    { id: 45, type: "pojecie", term: "Zamość", def: "Miasto założone przez Jana Zamoyskiego – renesansowe; Akademia Zamojska" },
+    { id: 46, type: "pojecie", term: "Synagoga", def: "Dom modlitwy wyznawców judaizmu" },
+    { id: 47, type: "pojecie", term: "Cerkiew", def: "Świątynia prawosławna" },
+    { id: 48, type: "pojecie", term: "Zbór", def: "Świątynia protestancka" },
+    { id: 49, type: "pojecie", term: "Meczet", def: "Świątynia muzułmańska" },
+    { id: 50, type: "pojecie", term: "Sejm", def: "Najwyższa władza w Rzeczypospolitej; biorą w nim udział król, senat i izba poselska" }
+  ];
+
+  var STORAGE_KEY = 'polska16_progress_v2';
+
+  function loadProgress() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        var p = JSON.parse(raw);
+        if (p && Array.isArray(p.known)) return p;
+      }
+    } catch (e) {}
+    return { known: [], bestScore: null, quizzesDone: 0 };
+  }
+  function saveProgress() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); } catch (e) {}
+  }
+  var progress = loadProgress();
+
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function toast(msg) {
+    var el = document.getElementById('toast');
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { el.classList.remove('show'); }, 2000);
+  }
+  function isKnown(id) { return progress.known.indexOf(id) !== -1; }
+  function setKnown(id, val) {
+    if (val && !isKnown(id)) progress.known.push(id);
+    else if (!val) progress.known = progress.known.filter(function (x) { return x !== id; });
+    saveProgress();
+    updateStats();
+  }
+  function setText(id, val) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = String(val);
+  }
+  function updateStats() {
+    var knownCount = progress.known.length;
+    var total = DATA.length;
+    var left = total - knownCount;
+    setText('stat-known', knownCount);
+    setText('stat-left', left);
+    setText('stat-total', total);
+    setText('stat-best', progress.bestScore !== null ? progress.bestScore + '/' + total : '–');
+    setText('det-known', knownCount);
+    setText('det-left', left);
+    setText('det-quizzes', progress.quizzesDone);
+    setText('det-best', progress.bestScore !== null ? progress.bestScore + '/' + total : '–');
+    var pct = Math.round((knownCount / total) * 100);
+    setText('mastery-pct', pct + '%');
+    var arc = document.getElementById('mastery-arc');
+    if (arc) {
+      var circ = 2 * Math.PI * 54;
+      arc.style.strokeDashoffset = String(circ - (pct / 100) * circ);
+    }
+  }
+
+  var typeLabels = { date: 'data → wydarzenie', event: 'wydarzenie → data', pojecie: 'pojęcie' };
+  var typeClasses = { date: 'date', event: 'event', pojecie: 'pojecie' };
+
+  var cards = DATA.slice();
+  var current = 0;
+  var isFlipped = false;
+  var onlyUnknown = false;
+
+  var flashcardEl = document.getElementById('flashcard');
+  var frontTermEl = document.getElementById('front-term');
+  var backDefEl = document.getElementById('back-def');
+  var frontTypeEl = document.getElementById('front-type');
+  var progressEl = document.getElementById('card-progress');
+  var knownBadgeEl = document.getElementById('known-badge');
+  var knownBadgeBackEl = document.getElementById('known-badge-back');
+
+  function rebuildCards() {
+    if (onlyUnknown) {
+      cards = DATA.filter(function (d) { return !isKnown(d.id); });
+      if (cards.length === 0) {
+        cards = DATA.slice();
+        onlyUnknown = false;
+        var btn = document.getElementById('only-unknown-btn');
+        if (btn) btn.textContent = 'Tylko nieznane';
+        toast('Wszystko oznaczone jako znane!');
+      }
+    } else {
+      cards = DATA.slice();
+    }
+    if (current >= cards.length) current = Math.max(0, cards.length - 1);
+    if (current < 0) current = 0;
+  }
+
+  function showCard() {
+    if (!cards.length) return;
+    isFlipped = false;
+    if (flashcardEl) flashcardEl.classList.remove('is-flipped');
+    var item = cards[current];
+    if (frontTermEl) frontTermEl.textContent = item.term;
+    if (backDefEl) backDefEl.textContent = item.def;
+    if (progressEl) progressEl.textContent = (current + 1) + ' / ' + cards.length;
+    if (frontTypeEl) {
+      frontTypeEl.textContent = typeLabels[item.type] || '';
+      frontTypeEl.className = 'card-type ' + (typeClasses[item.type] || 'pojecie');
+    }
+    var known = isKnown(item.id);
+    if (knownBadgeEl) knownBadgeEl.classList.toggle('hidden', !known);
+    if (knownBadgeBackEl) knownBadgeBackEl.classList.toggle('hidden', !known);
+  }
+
+  function flipCard() {
+    isFlipped = !isFlipped;
+    if (flashcardEl) {
+      if (isFlipped) flashcardEl.classList.add('is-flipped');
+      else flashcardEl.classList.remove('is-flipped');
+    }
+  }
+
+  function goNext() {
+    if (!cards.length) return;
+    current = (current + 1) % cards.length;
+    showCard();
+  }
+  function goPrev() {
+    if (!cards.length) return;
+    current = (current - 1 + cards.length) % cards.length;
+    showCard();
+  }
+
+  function on(id, event, handler) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener(event, handler);
+  }
+
+  on('flip-btn', 'click', function (e) { e.preventDefault(); e.stopPropagation(); flipCard(); });
+  if (flashcardEl) {
+    flashcardEl.addEventListener('click', function (e) { e.preventDefault(); flipCard(); });
+  }
+  on('prev-btn', 'click', function (e) { e.preventDefault(); goPrev(); });
+  on('next-btn', 'click', function (e) { e.preventDefault(); goNext(); });
+  on('shuffle-btn', 'click', function (e) {
+    e.preventDefault();
+    cards = shuffle(cards);
+    current = 0;
+    showCard();
+    toast('Wymieszano fiszki');
+  });
+  on('only-unknown-btn', 'click', function (e) {
+    e.preventDefault();
+    onlyUnknown = !onlyUnknown;
+    var btn = document.getElementById('only-unknown-btn');
+    if (btn) btn.textContent = onlyUnknown ? 'Pokaż wszystkie' : 'Tylko nieznane';
+    rebuildCards();
+    current = 0;
+    showCard();
+  });
+  on('know-btn', 'click', function (e) {
+    e.preventDefault();
+    if (!cards.length) return;
+    setKnown(cards[current].id, true);
+    if (knownBadgeEl) knownBadgeEl.classList.remove('hidden');
+    if (knownBadgeBackEl) knownBadgeBackEl.classList.remove('hidden');
+    toast('Oznaczono jako znane ✓');
+    if (onlyUnknown) {
+      rebuildCards();
+      if (current >= cards.length) current = Math.max(0, cards.length - 1);
+      showCard();
+    }
+  });
+  on('unknow-btn', 'click', function (e) {
+    e.preventDefault();
+    if (!cards.length) return;
+    setKnown(cards[current].id, false);
+    if (knownBadgeEl) knownBadgeEl.classList.add('hidden');
+    if (knownBadgeBackEl) knownBadgeBackEl.classList.add('hidden');
+    toast('Dodano do powtórek');
+  });
+
+  // QUIZ – pytania w obie strony
+  var quizOrder = [], qIndex = 0, score = 0, answered = false;
+
+  function startQuiz() {
+    quizOrder = shuffle(DATA);
+    qIndex = 0; score = 0; answered = false;
+    var quizArea = document.getElementById('quiz-area');
+    var resultArea = document.getElementById('result-area');
+    var nextQBtn = document.getElementById('next-q-btn');
+    if (quizArea) quizArea.classList.remove('hidden');
+    if (resultArea) resultArea.classList.add('hidden');
+    if (nextQBtn) nextQBtn.classList.add('hidden');
+    showQuestion();
+  }
+
+  function showQuestion() {
+    answered = false;
+    var feedback = document.getElementById('feedback');
+    var nextQBtn = document.getElementById('next-q-btn');
+    if (feedback) feedback.className = 'feedback';
+    if (nextQBtn) nextQBtn.classList.add('hidden');
+
+    var item = quizOrder[qIndex];
+    var question, correct, distractors;
+
+    // Dla kart typu "event" (już pytanie „kiedy?”) – trzymamy kierunek term→def
+    // Dla pozostałych – losowo w obie strony
+    var askFront = (item.type === 'event') ? true : (Math.random() > 0.45);
+
+    if (askFront) {
+      if (item.type === 'date') {
+        question = 'Co wydarzyło się w roku / latach: <strong style="color:var(--accent)">' + item.term + '</strong>?';
+      } else if (item.type === 'event') {
+        question = item.term;
+      } else {
+        question = 'Co oznacza: <strong style="color:var(--accent)">' + item.term + '</strong>?';
+      }
+      correct = item.def;
+      if (item.type === 'event') {
+        // Pytanie „kiedy?” wymaga czterech odpowiedzi będących datami.
+        distractors = shuffle(DATA.filter(function (d) { return d.type === 'date' && d.term !== item.def; })).slice(0, 3).map(function (d) { return d.term; });
+      } else {
+        distractors = shuffle(DATA.filter(function (d) { return d.def !== item.def; })).slice(0, 3).map(function (d) { return d.def; });
+      }
+    } else {
+      if (item.type === 'date') {
+        question = 'Kiedy miało miejsce: <strong>' + item.def + '</strong>?';
+        correct = item.term;
+        distractors = shuffle(DATA.filter(function (d) { return d.type === 'date' && d.term !== item.term; })).slice(0, 3).map(function (d) { return d.term; });
+      } else {
+        question = 'Jak nazywa się: <strong>' + item.def + '</strong>?';
+        correct = item.term;
+        distractors = shuffle(DATA.filter(function (d) { return d.term !== item.term; })).slice(0, 3).map(function (d) { return d.term; });
+      }
+    }
+
+    var allOpts = shuffle([correct].concat(distractors));
+    var qText = document.getElementById('q-text');
+    var quizScore = document.getElementById('quiz-score');
+    var quizBar = document.getElementById('quiz-bar');
+    var optionsEl = document.getElementById('options');
+
+    if (qText) qText.innerHTML = question;
+    if (quizScore) quizScore.textContent = 'Pytanie ' + (qIndex + 1) + ' z ' + quizOrder.length + ' · Punkty: ' + score;
+    if (quizBar) quizBar.style.width = ((qIndex / quizOrder.length) * 100) + '%';
+
+    if (optionsEl) {
+      optionsEl.innerHTML = '';
+      allOpts.forEach(function (opt) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'option';
+        btn.textContent = opt;
+        btn.addEventListener('click', function () { selectAnswer(btn, opt, correct, item.id); });
+        optionsEl.appendChild(btn);
+      });
+    }
+  }
+
+  function selectAnswer(btn, chosen, correct, itemId) {
+    if (answered) return;
+    answered = true;
+    var optionsEl = document.getElementById('options');
+    var feedback = document.getElementById('feedback');
+    var nextQBtn = document.getElementById('next-q-btn');
+    var quizScore = document.getElementById('quiz-score');
+    var quizBar = document.getElementById('quiz-bar');
+
+    if (optionsEl) {
+      var allBtns = optionsEl.querySelectorAll('.option');
+      for (var i = 0; i < allBtns.length; i++) {
+        allBtns[i].disabled = true;
+        if (allBtns[i].textContent === correct) allBtns[i].classList.add('correct');
+      }
+    }
+
+    if (chosen === correct) {
+      score++;
+      btn.classList.add('correct');
+      if (feedback) { feedback.textContent = '✅ Dobrze!'; feedback.className = 'feedback show ok'; }
+      if (!isKnown(itemId)) setKnown(itemId, true);
+    } else {
+      btn.classList.add('wrong');
+      if (feedback) { feedback.textContent = '❌ Źle. Poprawna: ' + correct; feedback.className = 'feedback show bad'; }
+    }
+
+    if (quizScore) quizScore.textContent = 'Pytanie ' + (qIndex + 1) + ' z ' + quizOrder.length + ' · Punkty: ' + score;
+    if (quizBar) quizBar.style.width = (((qIndex + 1) / quizOrder.length) * 100) + '%';
+
+    if (qIndex < quizOrder.length - 1) {
+      if (nextQBtn) nextQBtn.classList.remove('hidden');
+    } else {
+      setTimeout(showResults, 750);
+    }
+  }
+
+  function showResults() {
+    var quizArea = document.getElementById('quiz-area');
+    var resultArea = document.getElementById('result-area');
+    if (quizArea) quizArea.classList.add('hidden');
+    if (resultArea) resultArea.classList.remove('hidden');
+    setText('final-score', score + ' / ' + quizOrder.length);
+
+    progress.quizzesDone++;
+    if (progress.bestScore === null || score > progress.bestScore) progress.bestScore = score;
+    saveProgress();
+    updateStats();
+
+    var pct = Math.round((score / quizOrder.length) * 100);
+    var msg = '';
+    if (pct === 100) msg = '🏆 Świetnie! Znasz wszystko na 100%!';
+    else if (pct >= 80) msg = '👏 Bardzo dobrze! Jeszcze trochę powtórki.';
+    else if (pct >= 50) msg = '📚 Nieźle – wróć do fiszek i poćwicz.';
+    else msg = '💪 Nie poddawaj się – ćwicz fiszki i spróbuj ponownie!';
+    setText('final-msg', msg);
+  }
+
+  on('next-q-btn', 'click', function (e) { e.preventDefault(); qIndex++; showQuestion(); });
+  on('retry-btn', 'click', function (e) { e.preventDefault(); startQuiz(); });
+  on('go-fiszki-btn', 'click', function (e) { e.preventDefault(); switchTab('fiszki'); });
+
+  var listFilter = 'all';
+  function renderList() {
+    var list = document.getElementById('event-list');
+    if (!list) return;
+    var items = DATA;
+    if (listFilter === 'known') items = DATA.filter(function (d) { return isKnown(d.id); });
+    if (listFilter === 'unknown') items = DATA.filter(function (d) { return !isKnown(d.id); });
+
+    list.innerHTML = '';
+    items.forEach(function (item) {
+      var div = document.createElement('div');
+      div.className = 'event-item' + (isKnown(item.id) ? ' known' : '');
+      var termDiv = document.createElement('div');
+      termDiv.className = 'event-term';
+      termDiv.textContent = item.term;
+      var defDiv = document.createElement('div');
+      defDiv.className = 'event-def';
+      defDiv.textContent = item.def;
+      var statusBtn = document.createElement('button');
+      statusBtn.type = 'button';
+      statusBtn.className = 'event-status';
+      statusBtn.textContent = isKnown(item.id) ? '✅' : '⬜';
+      statusBtn.addEventListener('click', function () {
+        setKnown(item.id, !isKnown(item.id));
+        renderList();
+        var panel = document.getElementById('panel-fiszki');
+        if (panel && panel.classList.contains('active')) showCard();
+      });
+      div.appendChild(termDiv);
+      div.appendChild(defDiv);
+      div.appendChild(statusBtn);
+      list.appendChild(div);
+    });
+  }
+
+  document.querySelectorAll('.filter-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.filter-btn').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      listFilter = btn.getAttribute('data-filter');
+      renderList();
+    });
+  });
+
+  on('reset-btn', 'click', function (e) {
+    e.preventDefault();
+    if (confirm('Na pewno zresetować wszystkie postępy?')) {
+      progress = { known: [], bestScore: null, quizzesDone: 0 };
+      saveProgress();
+      updateStats();
+      rebuildCards();
+      showCard();
+      renderList();
+      toast('Postępy zresetowane');
+    }
+  });
+
+  function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+    document.querySelectorAll('.panel').forEach(function (p) { p.classList.remove('active'); });
+    var tabBtn = document.querySelector('.tab-btn[data-tab="' + name + '"]');
+    var panel = document.getElementById('panel-' + name);
+    if (tabBtn) tabBtn.classList.add('active');
+    if (panel) panel.classList.add('active');
+    if (name === 'quiz') startQuiz();
+    if (name === 'lista') renderList();
+    if (name === 'fiszki') { rebuildCards(); showCard(); }
+    if (name === 'postepy') updateStats();
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      switchTab(btn.getAttribute('data-tab'));
+    });
+  });
+
+  updateStats();
+  showCard();
+})();
+</script>
+</body>
+</html>
